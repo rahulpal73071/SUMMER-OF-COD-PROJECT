@@ -1,0 +1,8 @@
+mkdir otp-auth-api && cd otp-auth-api
+npm init -y
+npm install express mongoose dotenv nodemon body-parser
+npm install multer
+npm install morgan
+
+
+e8040b61557b444959dffacbddbe623c
