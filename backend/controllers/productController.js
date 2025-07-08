@@ -22,18 +22,45 @@ exports.createProduct = async (req, res) => {
     res.status(201).json({ message: 'Product created', product: savedProduct });
   } catch (err) {
     console.error('Error creating product:', err);
-    res.status(500).json({ error: 'Failed to create product' });
+    res.status(500).json({ error: 'Failed to create product', message: err.message });
+
   }
 };
 
 exports.getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find({});
+    const { category, minRating, sort } = req.query;
+
+    let query = {};
+
+    // ✅ Filter by category
+    if (category) {
+      query.category = category;
+    }
+
+    // ✅ Filter by rating
+    if (minRating) {
+      query['rating.rate'] = { $gte: parseFloat(minRating) };
+    }
+
+    let sortOption = {};
+
+    // ✅ Sorting
+    if (sort === 'price_asc') {
+      sortOption.price = 1;
+    } else if (sort === 'price_desc') {
+      sortOption.price = -1;
+    }
+
+    const products = await Product.find(query).sort(sortOption);
+
     res.status(200).json(products);
   } catch (err) {
+    console.error('Fetch products error:', err);
     res.status(500).json({ message: 'Fetch failed', error: err.message });
   }
 };
+
 
 exports.getProductById = async (req, res) => {
   try {

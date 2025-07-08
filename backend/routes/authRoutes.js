@@ -11,7 +11,8 @@ router.post(
   [
     check('name', 'Name is required').notEmpty(),
     check('email', 'Valid email required').isEmail(),
-    check('password', 'Min 6 chars').isLength({ min: 6 })
+    check('password', 'Min 6 chars').isLength({ min: 6 }),
+    check('role').optional().isIn(['user', 'admin']).withMessage('Role must be user or admin')
   ],
   runValidation,
   register

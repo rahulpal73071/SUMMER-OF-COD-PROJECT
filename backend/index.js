@@ -30,7 +30,8 @@ const app = express();
 
 // Connect to DB
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => logger('🟢 MongoDB connected successfully'))
+  .then(() => console.log('🟢 MongoDB connected successfully')
+  )
   .catch((err) => {
     logger(`🔴 MongoDB connection error: ${err}`, 'ERROR');
     process.exit(1);
@@ -75,6 +76,7 @@ app.use(errorHandler);
 
 // Start Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  logger(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+app.listen(PORT,'0.0.0.0', () => {
+  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+  
 });
