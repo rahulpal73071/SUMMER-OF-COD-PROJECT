@@ -28,6 +28,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   final TextEditingController _searchController = TextEditingController();
   late TabController _tabController;
+  bool _showSearchBar = false;
 
   @override
   void initState() {
@@ -60,50 +61,99 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       length: _categories.length,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text("E-Commerce"),
-          bottom: TabBar(
-            controller: _tabController,
-            isScrollable: true,
-            onTap: _onCategorySelected,
-            tabs: _categories
-                .map((cat) => Tab(child: Text(cat.toUpperCase())))
-                .toList(),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "BAJAAR",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              ),
+              IconButton(
+                icon: Icon(_showSearchBar ? Icons.close : Icons.search),
+                onPressed: () {
+                  setState(() {
+                    _showSearchBar = !_showSearchBar;
+                    if (!_showSearchBar) {
+                      _searchController.clear();
+                      _searchQuery = '';
+                      _fetchProducts();
+                    }
+                  });
+                },
+              )
+            ],
           ),
-        ),
-        body: Column(
-          children: [
-            ProductSearchBar(
-              controller: _searchController,
-              onSubmitted: _onSearch,
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(_showSearchBar ? 100 : 48),
+            child: Column(
+              children: [
+                if (_showSearchBar)
+                  ProductSearchBar(
+                    controller: _searchController,
+                    onSubmitted: _onSearch,
+                    autofocus: true,
+                  ),
+                TabBar(
+                  controller: _tabController,
+                  isScrollable: true,
+                  indicatorColor: Colors.black,
+                  labelColor: Colors.black,
+                  unselectedLabelColor: Colors.grey,
+                  onTap: _onCategorySelected,
+                  tabs: _categories
+                      .map((cat) => Tab(child: Text(cat.toUpperCase())))
+                      .toList(),
+                ),
+              ],
             ),
-            Expanded(
-              child: _products.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
-                  : GridView.builder(
-                      padding: const EdgeInsets.all(8),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                        childAspectRatio: 0.7,
-                      ),
-                      itemCount: _products.length,
-                      itemBuilder: (context, index) {
-                        return ProductCard(
-                          product: _products[index],
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ProductDetailPage(
-                                product: _products[index],
+          ),
+          backgroundColor: Colors.white,
+          elevation: 1,
+        ),
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFF5F5DC), // Beige
+                Color(0xFFFFE4C4), // Bisque
+                Color(0xFFFFF8DC), // Cornsilk
+                Color(0xFFFFDAB9), // Peach Puff
+              ],
+            ),
+          ),
+          child: Column(
+            children: [
+              Expanded(
+                child: _products.isEmpty
+                    ? const Center(child: CircularProgressIndicator())
+                    : GridView.builder(
+                        padding: const EdgeInsets.all(12),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.7,
+                        ),
+                        itemCount: _products.length,
+                        itemBuilder: (context, index) {
+                          return ProductCard(
+                            product: _products[index],
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ProductDetailPage(
+                                  product: _products[index],
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-          ],
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );

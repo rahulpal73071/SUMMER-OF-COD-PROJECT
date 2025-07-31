@@ -18,7 +18,7 @@ class _RootAppState extends State<RootApp> {
   final List<Widget> _pages = const [
     HomePage(),
     CartPage(),
-    OrdersPage(),
+    OrderPage(),
     ProfilePage(),
   ];
 

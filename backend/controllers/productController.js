@@ -14,7 +14,7 @@ exports.createProduct = async (req, res) => {
       price,
       quantity,
       images: imagePaths,
-      category,
+      category: category.toLowerCase(), // ✅ normalize to lowercase
       rating: { rate: 0, count: 0 }
     });
 
@@ -23,29 +23,27 @@ exports.createProduct = async (req, res) => {
   } catch (err) {
     console.error('Error creating product:', err);
     res.status(500).json({ error: 'Failed to create product', message: err.message });
-
   }
 };
 
 exports.getAllProducts = async (req, res) => {
   try {
-    const { category, minRating, sort } = req.query;
+    let { category, minRating, sort } = req.query;
 
     let query = {};
 
-    // ✅ Filter by category
+    // ✅ Case-insensitive category match
     if (category) {
-      query.category = category;
+      query.category = { $regex: new RegExp(`^${category}$`, 'i') }; // 'i' for case-insensitive
     }
 
-    // ✅ Filter by rating
+    // ✅ Filter by minimum rating
     if (minRating) {
       query['rating.rate'] = { $gte: parseFloat(minRating) };
     }
 
-    let sortOption = {};
-
     // ✅ Sorting
+    let sortOption = {};
     if (sort === 'price_asc') {
       sortOption.price = 1;
     } else if (sort === 'price_desc') {
@@ -61,7 +59,6 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
-
 exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -74,6 +71,11 @@ exports.getProductById = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
   try {
+    // ✅ Convert category to lowercase if updated
+    if (req.body.category) {
+      req.body.category = req.body.category.toLowerCase();
+    }
+
     const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!product) return res.status(404).json({ message: 'Product not found' });
     res.status(200).json(product);

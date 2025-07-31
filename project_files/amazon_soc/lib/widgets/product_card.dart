@@ -15,67 +15,80 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
+        height: 280, // ✅ Constrain height to avoid overflow
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(16),
           color: Colors.white,
           boxShadow: const [
             BoxShadow(
-              color: Colors.black12,
-              blurRadius: 3,
-              offset: Offset(0, 2),
+              color: Color(0x22000000),
+              blurRadius: 6,
+              offset: Offset(2, 3),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🖼️ Image
-            Expanded(
+            // 📷 Image
+            AspectRatio(
+              aspectRatio: 1,
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                child: Image.network(
-                  product.images.isNotEmpty ? product.images[0] : '',
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
-                ),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                child: (product.images.isNotEmpty && product.images[0].isNotEmpty)
+                    ? Image.network(
+                        product.images[0],
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => _fallbackImage(),
+                      )
+                    : _fallbackImage(),
               ),
             ),
 
-            // 🔽 Details
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '₹${product.price.toStringAsFixed(2)}',
-                    style: const TextStyle(fontSize: 16, color: Colors.green),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.star, color: Colors.orange, size: 16),
-                      const SizedBox(width: 4),
-                      Text('${product.rating} (${product.ratingCount})'),
-                    ],
-                  ),
-                ],
+            // 📝 Info
+            Expanded( // ✅ Fill remaining space without overflowing
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '₹${product.price.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF008000),
+                      ),
+                    ),
+                     // ✅ Pushes rating to bottom
+                    
+                  ],
+                ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _fallbackImage() {
+    return Container(
+      color: Colors.grey[200],
+      alignment: Alignment.center,
+      child: Icon(Icons.image_not_supported, color: Colors.grey[500], size: 40),
     );
   }
 }

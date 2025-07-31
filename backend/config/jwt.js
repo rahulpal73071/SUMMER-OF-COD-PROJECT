@@ -1,6 +1,6 @@
-// config/jwt.js
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+
 const generateToken = (user) => {
   return jwt.sign(
     {
@@ -15,7 +15,7 @@ const generateToken = (user) => {
   );
 };
 
-const verifyToken = (token) => {
+const verifyJwtToken = (token) => {
   try {
     return jwt.verify(token, process.env.JWT_SECRET);
   } catch (err) {
@@ -25,5 +25,5 @@ const verifyToken = (token) => {
 
 module.exports = {
   generateToken,
-  verifyToken
+  verifyJwtToken
 };

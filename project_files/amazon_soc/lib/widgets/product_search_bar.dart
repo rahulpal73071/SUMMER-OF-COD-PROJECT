@@ -49,7 +49,7 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
               widget.controller.text = result.recognizedWords;
             });
             if (result.finalResult) {
-              widget.onSubmitted(result.recognizedWords);
+              widget.onSubmitted(result.recognizedWords.toLowerCase().trim());
             }
           },
         );
@@ -66,7 +66,7 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: TextField(
         controller: widget.controller,
-        onSubmitted: widget.onSubmitted,
+        onSubmitted: (value) => widget.onSubmitted(value.toLowerCase().trim()),
         autofocus: widget.autofocus,
         autocorrect: true,
         enableSuggestions: true,
@@ -93,7 +93,8 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
           ),
           filled: true,
           fillColor: Colors.grey[200],
-          contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,

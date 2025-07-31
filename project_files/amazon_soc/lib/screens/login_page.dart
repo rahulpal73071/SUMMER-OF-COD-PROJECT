@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_textfield.dart';
-// import 'home_page.dart';
 import '../../utils/local_storage.dart';
 
 class LoginPage extends StatefulWidget {
@@ -30,11 +29,14 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       await LocalStorage.saveUser(
-        response.token,
-        response.user.name,
-        response.user.email,
-        response.user.role,
-      );
+  token: response.token,
+  id: response.user.id,
+  name: response.user.name,
+  email: response.user.email,
+  phone: response.user.phone,
+  address: response.user.address,
+  role: response.user.role,
+);
 
       Navigator.pushReplacement(
         context,

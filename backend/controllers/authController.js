@@ -4,7 +4,7 @@ const User = require('../models/User');
 const { generateToken } = require('../config/jwt');
 
 exports.register = async (req, res) => {
-  const { name, email, password, phone, role } = req.body;  // Include role
+  const { name, email, password, phone, role , address } = req.body;  // Include role
 
   try {
     const existing = await User.findOne({ email });
@@ -17,6 +17,7 @@ exports.register = async (req, res) => {
       email,
       password: hashedPassword,
       phone,
+      address,
       role: role || 'user'  // default to 'user' if not provided
     });
 
@@ -41,5 +42,33 @@ exports.login = async (req, res) => {
     res.status(200).json({ user, token });
   } catch (err) {
     res.status(500).json({ message: 'Login failed', error: err.message });
+  }
+};
+
+
+exports.updateUser = async (req, res) => {
+  try {
+    const updates = req.body;
+    const userId = req.user._id;
+
+    // Prevent role change via update
+    if (updates.role) {
+      return res.status(403).json({ message: 'Role update is not allowed' });
+    }
+
+    // If password is being updated, hash it
+    if (updates.password) {
+      updates.password = await bcrypt.hash(updates.password, 10);
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updates, {
+      new: true,
+      runValidators: true,
+      context: 'query',
+    }).select('-password');
+
+    res.status(200).json({ message: 'User updated successfully', user: updatedUser });
+  } catch (err) {
+    res.status(500).json({ message: 'Update failed', error: err.message });
   }
 };

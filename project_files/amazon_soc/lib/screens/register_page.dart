@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_textfield.dart';
-// import 'home_page.dart';
 import '../../utils/local_storage.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -18,6 +17,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final phoneController = TextEditingController();
+  final addressController = TextEditingController(); // ✅ New address controller
+
   final authService = AuthService();
 
   bool isLoading = false;
@@ -31,13 +32,17 @@ class _RegisterPageState extends State<RegisterPage> {
         emailController.text,
         passwordController.text,
         phoneController.text,
+        addressController.text, // ✅ Pass address
       );
 
       await LocalStorage.saveUser(
-        response.token,
-        response.user.name,
-        response.user.email,
-        response.user.role,
+        token: response.token,
+        id: response.user.id,
+        name: response.user.name,
+        email: response.user.email,
+        phone: response.user.phone,
+        address: response.user.address, // ✅ Store address from response
+        role: response.user.role,
       );
 
       Navigator.pushReplacement(
@@ -142,6 +147,12 @@ class _RegisterPageState extends State<RegisterPage> {
                     hint: "Phone",
                     controller: phoneController,
                     prefixIcon: Icons.phone,
+                  ),
+                  const SizedBox(height: 10),
+                  CustomTextField(
+                    hint: "Address", // ✅ New address field
+                    controller: addressController,
+                    prefixIcon: Icons.home,
                   ),
                   const SizedBox(height: 10),
                   CustomTextField(

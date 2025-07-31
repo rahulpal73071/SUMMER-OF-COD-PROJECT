@@ -11,9 +11,16 @@ const { authenticate, adminOnly } = require('../middlewares/auth');
 
 const router = express.Router();
 
-router.post('/', authenticate, placeOrder);
-router.get('/my', authenticate, getUserOrders);
-router.get('/admin', authenticate, adminOnly, getAllOrders);
-router.put('/:id/status', authenticate, adminOnly, updateOrderStatus);
+// Place order
+router.post('/',  placeOrder);
+
+// Get user's own orders
+router.get('/my',  getUserOrders);
+
+// Admin: get all orders
+router.get('/admin',  getAllOrders);
+
+// Admin: update order status
+router.put('/:id/status',  updateOrderStatus);
 
 module.exports = router;

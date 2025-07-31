@@ -1,10 +1,12 @@
 const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  userEmail: String,
   products: [{
-    productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
-    quantity: Number
+    productName: String,
+    quantity: Number,
+    Image:String,
+
   }],
   totalAmount: Number,
   shippingAddress: String,

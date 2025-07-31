@@ -2,14 +2,24 @@
 const Order = require('../models/Order');
 
 exports.placeOrder = async (req, res) => {
-  const { products, shippingAddress, totalAmount } = req.body;
+  const {
+    products,
+    shippingAddress,
+    totalAmount,
+    userEmail,
+    paymentStatus
+  } = req.body;
+
   try {
     const order = await Order.create({
-      userId: req.user.id,
+      userEmail,
       products,
       shippingAddress,
-      totalAmount
+      totalAmount,
+      
+      paymentStatus: paymentStatus || 'Completed'  // fallback if not sent
     });
+
     res.status(201).json(order);
   } catch (err) {
     res.status(500).json({ message: 'Order failed', error: err.message });
@@ -18,7 +28,7 @@ exports.placeOrder = async (req, res) => {
 
 exports.getUserOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ userId: req.user.id });
+    const orders = await Order.find({ userName: req.user.email }); // use `userName` instead of userId
     res.status(200).json(orders);
   } catch (err) {
     res.status(500).json({ message: 'Fetch failed', error: err.message });
@@ -27,7 +37,7 @@ exports.getUserOrders = async (req, res) => {
 
 exports.getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find({}).populate('userId', 'name email');
+    const orders = await Order.find({});
     res.status(200).json(orders);
   } catch (err) {
     res.status(500).json({ message: 'Admin fetch failed', error: err.message });
@@ -37,7 +47,11 @@ exports.getAllOrders = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
   const { status } = req.body;
   try {
-    const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true });
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
     res.status(200).json(order);
   } catch (err) {
     res.status(500).json({ message: 'Status update failed', error: err.message });

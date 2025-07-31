@@ -1,9 +1,10 @@
-// ✅ lib/views/home/product_detail_page.dart
 import 'package:flutter/material.dart';
 import '../../models/product_model.dart';
 import '../../services/product_service.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
+import '../pages/cart_page.dart';
+
 class ProductDetailPage extends StatefulWidget {
   final Product product;
 
@@ -15,18 +16,34 @@ class ProductDetailPage extends StatefulWidget {
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
   List<Product> _recommendations = [];
+  bool _isInCart = false;
 
   @override
   void initState() {
     super.initState();
     _fetchRecommendations();
+    _checkCart();
+  }
+
+  void _checkCart() {
+    final cart = Provider.of<CartProvider>(context, listen: false);
+    setState(() {
+      _isInCart = cart.items.any((item) => item.id == widget.product.id);
+    });
   }
 
   void _fetchRecommendations() async {
-    final all = await ProductService().fetchProducts(category: widget.product.category);
-    setState(() {
-      _recommendations = all.where((p) => p.id != widget.product.id).take(5).toList();
-    });
+    try {
+      final all = await ProductService().fetchProducts(
+        category: widget.product.category,
+      );
+      setState(() {
+        _recommendations =
+            all.where((p) => p.id != widget.product.id).take(5).toList();
+      });
+    } catch (e) {
+      print('Error fetching recommendations: $e');
+    }
   }
 
   void _showImageZoom(String imageUrl) {
@@ -43,15 +60,25 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   @override
   Widget build(BuildContext context) {
     final product = widget.product;
+    final cart = Provider.of<CartProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(product.title),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined),
-            onPressed: () {},
-          )
+            icon: const Icon(Icons.shopping_cart),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CartPage()),
+              );
+            },
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -59,7 +86,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🖼️ Image carousel with zoom on tap
+            // Product Images
             SizedBox(
               height: 250,
               child: PageView.builder(
@@ -67,10 +94,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 itemBuilder: (context, index) {
                   return GestureDetector(
                     onTap: () => _showImageZoom(product.images[index]),
-                    child: Image.network(
-                      product.images[index],
-                      fit: BoxFit.cover,
-                      width: double.infinity,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        product.images[index],
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                      ),
                     ),
                   );
                 },
@@ -78,13 +108,17 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ),
             const SizedBox(height: 16),
 
+            // Title & Category
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
                   child: Text(
                     product.title,
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 Chip(label: Text(product.category.toUpperCase())),
@@ -92,62 +126,57 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ),
             const SizedBox(height: 8),
 
+            // Price & Rating
             Row(
               children: [
                 Text(
                   '₹${product.price.toStringAsFixed(2)}',
                   style: const TextStyle(fontSize: 20, color: Colors.green),
                 ),
-                const SizedBox(width: 16),
-                Row(
-                  children: [
-                    const Icon(Icons.star, color: Colors.orange, size: 18),
-                    const SizedBox(width: 4),
-                    Text('${product.rating} (${product.ratingCount})'),
-                  ],
-                ),
+                
               ],
             ),
-
             const SizedBox(height: 16),
-            const Text('Description', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+
+            // Description
+            const Text(
+              'Description',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 4),
             Text(product.description, style: const TextStyle(fontSize: 15)),
-
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.add_shopping_cart),
-                    label: const Text('Add to Cart'),
-                    onPressed: () {
-                      Provider.of<CartProvider>(context, listen: false).addToCart(product);
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Added to cart')),
-  
-  );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                    icon: const Icon(Icons.flash_on),
-                    label: const Text('Buy Now'),
-                    onPressed: () {},
-                  ),
-                ),
-              ],
-            ),
-
             const SizedBox(height: 24),
-            if (_recommendations.isNotEmpty)
-              const Text('You May Also Like',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
 
+            // Add to Cart Button
+            ElevatedButton.icon(
+              icon: Icon(
+                _isInCart ? Icons.shopping_cart : Icons.add_shopping_cart,
+              ),
+              label: Text(_isInCart ? 'Go to Cart' : 'Add to Cart'),
+              onPressed: () {
+                if (_isInCart) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const CartPage()),
+                  );
+                } else {
+                  cart.addToCart(product);
+                  setState(() => _isInCart = true);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Added to cart')),
+                  );
+                }
+              },
+            ),
+            const SizedBox(height: 24),
+
+            // Recommendations
+            if (_recommendations.isNotEmpty)
+              const Text(
+                'You May Also Like',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            const SizedBox(height: 8),
             if (_recommendations.isNotEmpty)
               SizedBox(
                 height: 220,
@@ -157,12 +186,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   itemBuilder: (context, index) {
                     final rec = _recommendations[index];
                     return GestureDetector(
-                      onTap: () => Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ProductDetailPage(product: rec),
-                        ),
-                      ),
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ProductDetailPage(product: rec),
+                          ),
+                        );
+                      },
                       child: Container(
                         width: 160,
                         margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -176,7 +207,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           children: [
                             Expanded(
                               child: ClipRRect(
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(12),
+                                ),
                                 child: Image.network(
                                   rec.images.isNotEmpty ? rec.images[0] : '',
                                   fit: BoxFit.cover,
@@ -193,7 +226,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                     rec.title,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text('₹${rec.price.toStringAsFixed(0)}'),
